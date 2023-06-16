@@ -1,18 +1,19 @@
 const expenseList = document.getElementById('expense-list');
 const razorpayBtn = document.getElementById('razorpayBtn');
 const token = localStorage.getItem('token');
-const dateField = document.getElementById('date-field');
 const monthField = document.getElementById('month-field');
 const yearField = document.getElementById('year-field');
 const expensesHeading = document.getElementById('expenses-heading');
 const expenseTable = document.getElementById('expense-table');
 const pagination = document.getElementById('pagination');
+const leaderboardList = document.getElementById('leaderboardList');
 const reportButton = document.getElementById('report-button');
 const downloadList = document.getElementById('download-list');
 const downloadsHead = document.getElementById('downloads-head');
 
 const dateHead = document.getElementById('date-head');
 const netMoneyField = document.getElementById('net-money');
+
 const numberFieldsButton = document.getElementById('number-fields-submit');
 const numberFields = document.getElementById('number-fields');
 
@@ -21,9 +22,11 @@ let numRows = localStorage.getItem('numRows');
 const leaderboardTable = document.getElementById('leaderboard-table');
 const leaderboardHeading = document.getElementById('leaderboard-heading');
 
+
 if (!numRows) {
     localStorage.setItem('numRows', 10);
 }
+
 numberFieldsButton.onclick = async (e) => {
     try {
         e.preventDefault();
@@ -36,10 +39,6 @@ numberFieldsButton.onclick = async (e) => {
         console.log(err);
     }
 }
-
-
-
-
 
 function expenseDataHandler(response) {
     try {
@@ -66,7 +65,7 @@ function expenseDataHandler(response) {
         else {
             netMoney.appendChild(document.createTextNode(`Net expenses- ${netExpenses - netSavings}`));
         }
-
+        const netMoneyField = document.getElementById('net-money');
         netMoneyField.appendChild(netMoney);
     } catch (err) {
         console.log(err);
@@ -79,18 +78,15 @@ async function getProducts(page) {
         expenseTable.innerHTML = '';
         dateHead.innerHTML = '';
         netMoneyField.innerHTML = '';
-
-        expenseTable.innerHTML += '<th>Description</th><th>Category</th><th>Income</th><th>Expense</th>';
-        const date = dateField.value;
+        expenseTable.innerHTML += '<th>Date</th><th>Description</th><th>Category</th><th>Income</th><th>Expense</th>';
         const month = monthField.value
         const year = yearField.value;
 
         const monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
 
-        const monthIndex = month - 1;
-        dateHead.appendChild(document.createTextNode(`${date} ${monthName[monthIndex]} ${year}`));
+        dateHead.appendChild(document.createTextNode(`${monthName[month]} ${year}`));
 
-        await axios.get(`http://localhost:3000/expense/get-expense?page=${page}&&date=${date}&&month=${month}&&year=${year}&&numRows=${numRows}`, { headers: { "Authorization": token } })
+        await axios.get(`http://localhost:3000/expense/get-expense?page=${page}&&month=${month}&&year=${year}&&numRows=${numRows}`, { headers: { "Authorization": token } })
             .then(({ data: { response, ...pageData } }) => {
                 expenseDataHandler(response);
                 showPagination(pageData);
@@ -100,7 +96,9 @@ async function getProducts(page) {
         console.log(err);
     }
 }
+
 async function showPagination({ currentPage, hasNextPage, nextPage, hasPreviousPage, previousPage, lastPage }) {
+
     try {
         pagination.innerHTML = '';
 
@@ -161,28 +159,26 @@ async function showPagination({ currentPage, hasNextPage, nextPage, hasPreviousP
         console.log(err);
     }
 }
-
 async function getExpenses(e) {
 
     try {
         e.preventDefault();
 
-        const date = dateField.value;
         const month = monthField.value
         const year = yearField.value;
-
         const monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
 
-        dateHead.appendChild(document.createTextNode(`${date} ${monthName[month]} ${year}`));
+        const monthIndex = month - 1;
+        dateHead.appendChild(document.createTextNode(`${monthName[monthIndex]} ${year}`));
 
         const page = 1;
-        await axios.get(`http://localhost:3000/expense/get-expense?page=${page}&&date=${date}&&month=${month}&&year=${year}&&numRows=${numRows}`, { headers: { "Authorization": token } })
+        await axios.get(`http://localhost:3000/expense/get-expense?page=${page}&&month=${month}&&year=${year}&&numRows=${numRows}`, { headers: { "Authorization": token } })
             .then(({ data: { response, ...pageData } }) => {
                 expenseDataHandler(response);
                 showPagination(pageData);
             })
             .catch(err => console.log(err))
-    } catch (err) {
+    } catch(err){
         console.log(err);
     }
 }
@@ -194,12 +190,16 @@ function logData(record, i) {
         const name = record.name;
         const category = record.category;
         const id = record.id;
-
+        const date = record.date;
+        const month = record.month;
+        const monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
         const tableRow = document.createElement('tr');
         const deleteData = document.createElement('td');
         deleteData.classList.add('delete-field');
 
         if (name === null) {
+            const dateData = document.createElement('td');
+            dateData.appendChild(document.createTextNode(`${date}-${monthName[month]}`));
             const descriptionData = document.createElement('td');
             descriptionData.appendChild(document.createTextNode(`Salary`));
             const categoryData = document.createElement('td');
@@ -209,6 +209,7 @@ function logData(record, i) {
             const expenseData = document.createElement('td');
             expenseData.appendChild(document.createTextNode(``));
 
+            tableRow.appendChild(dateData);
             tableRow.appendChild(descriptionData);
             tableRow.appendChild(categoryData);
             tableRow.appendChild(incomeData);
@@ -216,6 +217,8 @@ function logData(record, i) {
             tableRow.appendChild(deleteData);
         }
         else {
+            const dateData = document.createElement('td');
+            dateData.appendChild(document.createTextNode(`${date}-${monthName[month]}`));
             const descriptionData = document.createElement('td');
             descriptionData.appendChild(document.createTextNode(`${name}`));
             const categoryData = document.createElement('td');
@@ -225,6 +228,7 @@ function logData(record, i) {
             const expenseData = document.createElement('td');
             expenseData.appendChild(document.createTextNode(`${price}`));
 
+            tableRow.appendChild(dateData);
             tableRow.appendChild(descriptionData);
             tableRow.appendChild(categoryData);
             tableRow.appendChild(incomeData);
@@ -265,10 +269,8 @@ function logData(record, i) {
 
 }
 
-
 window.addEventListener('DOMContentLoaded', async () => {
     try {
-        // Every time the server restarts, the backend might not be available, so we are just giving time for backend to start properly
         const response = await axios.get('http://localhost:3000/purchase/premiumOrNot', { headers: { "Authorization": token } });
         const isPremium = response.data.isPremium;
         if (isPremium === 'true') {
@@ -320,11 +322,14 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 })
 
+
 document.getElementById('razorpayBtn').onclick = async function (e) {
     try {
         e.preventDefault();
         const token = localStorage.getItem('token');
         const response = await axios.get('http://localhost:3000/purchase/premiumMembership', { headers: { "Authorization": token } });
+        console.log(response);
+
 
         var options = {
             "key": response.data.key_id,//key id generated from the dashboard
@@ -356,7 +361,6 @@ document.getElementById('razorpayBtn').onclick = async function (e) {
 
 reportButton.onclick = async (e) => {
     try {
-
         e.preventDefault();
         const response = await axios.get('http://localhost:3000/purchase/premiumOrNot', { headers: { "Authorization": token } });
         const isPremium = response.data.isPremium;
@@ -371,7 +375,6 @@ reportButton.onclick = async (e) => {
                         // downloading it with name myexpense.csv
                         a.download = 'myexpense.csv';
                         a.click();
-                        // window.location.reload();
                     } else {
                         throw new Error
                     }
@@ -383,13 +386,9 @@ reportButton.onclick = async (e) => {
         else {
             alert('Download report function is available for premium users only');
         }
-
     }
     catch (err) {
         console.log(err);
     }
 }
-
-
-
 
